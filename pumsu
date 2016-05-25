@@ -41,6 +41,7 @@ def usage():
   print('Usage: %s OPTIONS' % argv[0])
   print('\nBuilds and uploads Puppet modules to Red Hat Satellite')
   print('\nOPTIONS:')
+  print('  -d|--debug         - do not clean up temporary artifacts')
   print('  -m|--modules       - file containing a list of modules to process')
   print('  -o|--organisation  - Satellite organisation')
   print('  -p|--product       - Satellite product')
@@ -50,9 +51,10 @@ def usage():
 
 
 def main():
+  debug = False
   signal(SIGINT, sig_handler)
   try:
-    opts, args = getopt.gnu_getopt(argv[1:], "m:o:p:r:t:h", ["modules", "organisation", "product", "repo", "target","help"])
+    opts, args = getopt.gnu_getopt(argv[1:], "dm:o:p:r:t:h", ["debug", "modules", "organisation", "product", "repo", "target","help"])
   except getopt.GetoptError, err:
     print(str(err))
     usage()
@@ -63,7 +65,9 @@ def main():
     return 1
 
   for opt, arg in opts:
-    if opt in ("-m", "--modules"):
+    if opt in ("-d", "--debug"):
+      debug = True
+    elif opt in ("-m", "--modules"):
       module_file = arg
     elif opt in ("-o", "--organisation"):
       org = arg
@@ -105,8 +109,15 @@ def main():
   # read module list
   modules = [line.rstrip('\n') for line in open(module_file, "r")]
 
-  # build each defined puppet module found in the target directory
   os.chdir(target)
+
+  # ensure content is readable by all, will cause issues for Satellite if not
+  print("[*] resetting permissions in target directory")
+  ensure_perms = subprocess.Popen("chmod -R a+r ./", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  ensure_perms.communicate()
+  ensure_perms.wait()
+
+  # build the modules
   for mod in modules:
     print("[*] building module: %s" % mod)
     os.chdir(mod)
@@ -114,7 +125,8 @@ def main():
     module_build.communicate()
     module_build.wait()
     copy(glob("pkg/*.tar.gz")[0], out_dir)
-    rmtree("pkg/")
+    if debug is False:
+      rmtree("pkg/")
     os.chdir('../')
 
   # upload the modules
@@ -123,11 +135,17 @@ def main():
   process.wait()
 
   # clean up
-  print("[*] cleaning up temp dir")
-  rmtree(out_dir)
+  if debug:
+    print("[d] temp dir %s has NOT been cleaned up" % out_dir)
+    print("[d] <module>/pkg direcories have NOT been cleaned up")
+  else:
+    print("[*] cleaning up temp dir")
+    rmtree(out_dir)
+
   return 0
 
 if __name__ == "__main__":
+    os.umask(022)
     rc = main()
     exit(rc)
 
