@@ -43,10 +43,8 @@ def usage():
   print('\nOPTIONS:')
   print('  -d|--debug         - do not clean up temporary artifacts')
   print('  -m|--modules       - file containing a list of modules to process')
-  print('  -o|--organisation  - Satellite organisation')
-  print('  -p|--product       - Satellite product')
-  print('  -r|--repo          - Satellite puppet module repository')
-  print('  -t|--target        - target directory containing the modules')
+  print('  -r|--repoid        - Satellite puppet module repository ID')
+  print('  -s|--source        - source directory containing the modules')
   print(' [-h|--help]')
 
 
@@ -54,7 +52,7 @@ def main():
   debug = False
   signal(SIGINT, sig_handler)
   try:
-    opts, args = getopt.gnu_getopt(argv[1:], "dm:o:p:r:t:h", ["debug", "modules", "organisation", "product", "repo", "target","help"])
+    opts, args = getopt.gnu_getopt(argv[1:], "dm:r:s:h", ["debug", "modules", "repoid", "source", "help"])
   except getopt.GetoptError, err:
     print(str(err))
     usage()
@@ -69,14 +67,10 @@ def main():
       debug = True
     elif opt in ("-m", "--modules"):
       module_file = arg
-    elif opt in ("-o", "--organisation"):
-      org = arg
-    elif opt in ("-p", "--product"):
-      product = arg
-    elif opt in ("-r", "--repo"):
+    elif opt in ("-r", "--repoid"):
       repo = arg
-    elif opt in ("-t", "--target"):
-      target = arg
+    elif opt in ("-s", "--source"):
+      source = arg
     elif opt in ("-h", "--help"):
       usage()
       return 0
@@ -86,20 +80,18 @@ def main():
 
   try:
     module_file
-    org
-    product
     repo
-    target
+    source
   except:
     print("<*> required option missing")
     usage()
     return 1
 
   # check we are logged in via hammer
-  process = subprocess.Popen("hammer auth status | grep 'You are logged in'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  output = process.communicate()[0]
-  process.wait()
-  if process.returncode != 0:
+  auth_status = subprocess.Popen("hammer auth status | grep 'You are logged in'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  output = auth_status.communicate()[0]
+  auth_status.wait()
+  if auth_status.returncode != 0:
     print("<!> not logged in via hammer, please ensure ~/.hammer/cli_config.yml is correct")
     return 1
 
@@ -109,10 +101,10 @@ def main():
   # read module list
   modules = [line.rstrip('\n') for line in open(module_file, "r")]
 
-  os.chdir(target)
+  os.chdir(source)
 
   # ensure content is readable by all, will cause issues for Satellite if not
-  print("[*] resetting permissions in target directory")
+  print("[*] resetting permissions in source directory")
   ensure_perms = subprocess.Popen("chmod -R a+r ./", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   ensure_perms.communicate()
   ensure_perms.wait()
@@ -131,8 +123,13 @@ def main():
 
   # upload the modules
   print("[*] uploading modules")
-  process = subprocess.Popen("hammer repository upload-content --name %s --path %s --product %s --organization %s" % (repo, out_dir, product, org) , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  process.wait()
+  upload_modules = subprocess.Popen("hammer repository upload-content --id %s --path %s" % (repo, out_dir) , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  (upload_output, upload_errors) = upload_modules.communicate()
+  upload_modules.wait()
+  print(upload_output)
+  if upload_modules.returncode != 0:
+    print("<!> %s" % upload_errors)
+    return 1
 
   # clean up
   if debug:
