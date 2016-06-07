@@ -2,6 +2,11 @@ This script allows you to build and upload puppet modules into Satellite 6
 
 Example output:
 ```sh
+[root@sat ~]# ./pumsu -l "Test Org"
+---|------|---------|--------------|----
+ID | NAME | PRODUCT | CONTENT TYPE | URL
+---|------|---------|--------------|----
+
 [root@sat ~]# ./pumsu -l LabInternal
 ---|----------------|------------------------|--------------|----
 ID | NAME           | PRODUCT                | CONTENT TYPE | URL
