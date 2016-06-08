@@ -94,6 +94,8 @@ def main():
       return 1
 
   # check we are logged in via hammer
+  if debug:
+    print("[d] executing: hammer auth status | grep 'You are logged in'")
   auth_status = subprocess.Popen("hammer auth status | grep 'You are logged in'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   output = auth_status.communicate()[0]
   auth_status.wait()
@@ -103,6 +105,8 @@ def main():
 
   # list repos
   if list_repos:
+    if debug:
+      print("[d] executing: hammer repository list --organization=\"%s\" --content-type puppet" % (org))
     list_repos_process = subprocess.Popen("hammer repository list --organization=\"%s\" --content-type puppet" % (org), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (list_repos_output, list_repos_errors) = list_repos_process.communicate()
     list_repos_process.wait()
@@ -122,6 +126,8 @@ def main():
 
   # ensure content is readable by all, will cause issues for Satellite if not
   print("[*] resetting permissions in source directory")
+  if debug:
+    print("[d] executing: chmod -R a+r ./")
   ensure_perms = subprocess.Popen("chmod -R a+r ./", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   ensure_perms.communicate()
   ensure_perms.wait()
@@ -140,6 +146,8 @@ def main():
 
   # upload the modules
   print("[*] uploading modules")
+  if debug:
+    print("[d] executing: hammer respository upload-content --id %s --path %s" % (repo, out_dir))
   upload_modules = subprocess.Popen("hammer repository upload-content --id %s --path %s" % (repo, out_dir) , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   (upload_output, upload_errors) = upload_modules.communicate()
   upload_modules.wait()
