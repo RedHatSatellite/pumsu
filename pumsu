@@ -54,7 +54,7 @@ def main():
   list_repos = False
   signal(SIGINT, sig_handler)
   try:
-    opts, args = getopt.gnu_getopt(argv[1:], "dl:m:r:s:h", ["debug", "list_puppet_repos", "modules", "repoid", "source", "help"])
+    opts, args = getopt.gnu_getopt(argv[1:], "dl:m:r:s:h", ["debug", "list_puppet_repos=", "modules=", "repoid=", "source=", "help"])
   except getopt.GetoptError, err:
     print(str(err))
     usage()
