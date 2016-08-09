@@ -31,6 +31,9 @@ import tempfile
 from sys import argv
 from sys import exit
 
+# version
+version = '20160809'
+
 
 # handle ctrl+c instead of crashing out whereever we are
 def sig_handler(sig, frame):
@@ -42,19 +45,26 @@ def usage():
   print('\nBuilds and uploads Puppet modules to Red Hat Satellite')
   print('\nOPTIONS:')
   print('  -d|--debug                         - do not clean up temporary artifacts')
-  print('  -l|--list_puppet_repos <org_name>  - list Puppet repos in Satellite for organisation')
+  print(' [-h|--help]')
+  print('  -l|--list_puppet_repos <org_name>  - list Puppet repos in Satellite for orgs')
   print('  -m|--modules <file_name>           - file containing a list of modules to process')
+  print('  -o|--orgs                          - list Satellite orgs')
   print('  -r|--repoid <id>                   - Satellite puppet module repository ID')
   print('  -s|--source <source_dir>           - source directory containing the modules')
-  print(' [-h|--help]')
+  print('  -v|--version')
+
+
+def print_version():
+  print(version)
 
 
 def main():
   debug = False
   list_repos = False
+  list_orgs = False
   signal(SIGINT, sig_handler)
   try:
-    opts, args = getopt.gnu_getopt(argv[1:], "dl:m:r:s:h", ["debug", "list_puppet_repos=", "modules=", "repoid=", "source=", "help"])
+    opts, args = getopt.gnu_getopt(argv[1:], "dhl:m:or:s:v", ["debug", "help", "list_puppet_repos=", "modules=", "orgs", "repoid=", "source=", "version"])
   except getopt.GetoptError, err:
     print(str(err))
     usage()
@@ -67,23 +77,29 @@ def main():
   for opt, arg in opts:
     if opt in ("-d", "--debug"):
       debug = True
+    elif opt in ("-h", "--help"):
+      usage()
+      return 0
     elif opt in ("-l", "--list_puppet_repos"):
       list_repos = True
       org = arg
     elif opt in ("-m", "--modules"):
       module_file = arg
+    elif opt in ("-o", "--orgs"):
+      list_orgs = True
+      org = arg
     elif opt in ("-r", "--repoid"):
       repo = arg
     elif opt in ("-s", "--source"):
       source = arg
-    elif opt in ("-h", "--help"):
-      usage()
+    elif opt in ("-v", "--version"):
+      print_version()
       return 0
     else:
       print('<*> unhandled option')
       return 4
 
-  if list_repos is False:
+  if list_repos is False and list_orgs is False:
     try:
       module_file
       repo
@@ -103,6 +119,19 @@ def main():
     print("<!> not logged in via hammer, please ensure ~/.hammer/cli_config.yml is correct")
     return 1
 
+  # list orgs
+  if list_orgs:
+    if debug:
+      print("[d] executing: hammer organization list")
+    list_orgs_process = subprocess.Popen("hammer organization list", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (list_orgs_output, list_orgs_errors) = list_orgs_process.communicate()
+    list_orgs_process.wait()
+    print(list_orgs_output)
+    if list_orgs_process.returncode != 0:
+      print("<!> unable to query Satellite for org list")
+      return 1
+    return 0
+    
   # list repos
   if list_repos:
     if debug:
@@ -165,6 +194,7 @@ def main():
     rmtree(out_dir)
 
   return 0
+
 
 if __name__ == "__main__":
     os.umask(022)

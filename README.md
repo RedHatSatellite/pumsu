@@ -2,7 +2,18 @@ This script allows you to build and upload puppet modules into Satellite 6
 
 Example output:
 ```sh
-[root@sat ~]# ./pumsu -l "Test Org"
+[root@sat ~]# pumsu -v
+20160809
+
+[root@sat ~]# pumsu -o
+---|-------------|-------------|------------
+ID | NAME        | LABEL       | DESCRIPTION
+---|-------------|-------------|------------
+3  | LabInternal | LabInternal |            
+6  | Test Org    | testOrg     |            
+---|-------------|-------------|------------
+
+[root@sat ~]# pumsu -l "Test Org"
 ---|------|---------|--------------|----
 ID | NAME | PRODUCT | CONTENT TYPE | URL
 ---|------|---------|--------------|----
@@ -14,7 +25,7 @@ ID | NAME           | PRODUCT                | CONTENT TYPE | URL
 9  | puppet-modules | inhouse-puppet-modules | puppet       |    
 ---|----------------|------------------------|--------------|----
 
-[root@sat ~]# ./pumsu --modules module_list.txt --source puppet-modules/ --repoid 9
+[root@sat ~]# pumsu --modules module_list.txt --source puppet-modules/ --repoid 9
 [*] building module: abrt_ccpp
 [*] building module: abrtd
 [*] building module: abrt_oops
