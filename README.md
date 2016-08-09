@@ -18,7 +18,7 @@ ID | NAME        | LABEL       | DESCRIPTION
 ID | NAME | PRODUCT | CONTENT TYPE | URL
 ---|------|---------|--------------|----
 
-[root@sat ~]# ./pumsu -l LabInternal
+[root@sat ~]# pumsu -l LabInternal
 ---|----------------|------------------------|--------------|----
 ID | NAME           | PRODUCT                | CONTENT TYPE | URL
 ---|----------------|------------------------|--------------|----
