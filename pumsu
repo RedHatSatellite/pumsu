@@ -176,8 +176,8 @@ def main():
   # upload the modules
   print("[*] uploading modules")
   if debug:
-    print("[d] executing: hammer respository upload-content --id %s --path %s" % (repo, out_dir))
-  upload_modules = subprocess.Popen("hammer repository upload-content --id %s --path %s" % (repo, out_dir) , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print("[d] executing: hammer respository upload-content --id %s --product puppet --path %s" % (repo, out_dir))
+  upload_modules = subprocess.Popen("hammer repository upload-content --id %s --product puppet --path %s" % (repo, out_dir) , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   (upload_output, upload_errors) = upload_modules.communicate()
   upload_modules.wait()
   print(upload_output)
