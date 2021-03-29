@@ -112,7 +112,7 @@ def main():
   # check we are logged in via hammer
   if debug:
     print("[d] executing: hammer auth status | grep 'You are logged in'")
-  auth_status = subprocess.Popen("hammer auth status | grep 'You are logged in'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  auth_status = subprocess.Popen("hammer auth status | grep 'Using configured credentials'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   output = auth_status.communicate()[0]
   auth_status.wait()
   if auth_status.returncode != 0:
@@ -177,7 +177,8 @@ def main():
   print("[*] uploading modules")
   if debug:
     print("[d] executing: hammer respository upload-content --id %s --product puppet --path %s" % (repo, out_dir))
-  upload_modules = subprocess.Popen("hammer repository upload-content --id %s --product puppet --path %s" % (repo, out_dir) , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+  upload_modules = subprocess.Popen("hammer repository upload-content --id %s --path %s" % (repo, out_dir) , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   (upload_output, upload_errors) = upload_modules.communicate()
   upload_modules.wait()
   print(upload_output)
