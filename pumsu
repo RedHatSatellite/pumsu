@@ -165,7 +165,7 @@ def main():
   for mod in modules:
     print("[*] building module: %s" % mod)
     os.chdir(mod)
-    module_build = subprocess.Popen(["puppet", "module", "build"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    module_build = subprocess.Popen(["pdk", "build", "--force"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     module_build.communicate()
     module_build.wait()
     copy(glob("pkg/*.tar.gz")[0], out_dir)
